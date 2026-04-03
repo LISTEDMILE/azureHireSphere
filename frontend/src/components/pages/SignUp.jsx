@@ -1,0 +1,232 @@
+import React, { useState } from "react";
+import NavHome from "../compo/NavHome";
+import Footer from "../compo/Footer";
+import { AddUserToServer } from "../../../services/Services";
+import { useNavigate } from "react-router-dom";
+import { BackgroundAnimation } from "../compo/anima";
+import Errors from "../compo/Errors";
+import Loader from "../compo/loader";
+
+const SignUpPage = () => {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    firstname: "",
+    lastname: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+    userType: "employee",
+  });
+
+  const [display, setDisplay] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [errors, setErrors] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    setErrors(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    if (formData.password !== formData.confirmPassword) {
+      setErrors(["Passwords do not match."]);
+      setIsLoading(false);
+      return;
+    }
+    let er = await AddUserToServer(formData);
+    setErrors(er.errors ? er.errors : null);
+
+    if (!er.errors) {
+      navigate("/login");
+    }
+    setIsLoading(false);
+  };
+
+  return (
+    <div className="relative w-full flex flex-col items-center justify-center min-h-screen bg-black">
+      <NavHome active="signUpPage" />
+      <BackgroundAnimation />
+      <h1 className="text-4xl font-bold mb-6 text-white">Sign Up</h1>
+
+      <form
+        onSubmit={handleSubmit}
+        className="bg-[#0d212ec9] relative shadow-lg text-white rounded-lg p-8 w-[95%] sm:w-[600px]"
+      >
+        <Errors errors={errors} />
+
+        <div className="mb-4">
+          <div className="flex justify-around w-full border-b-2 border-b-white pb-4 mb-6">
+            <button
+              type="button"
+              name="userType"
+              value="employee"
+              className={`${
+                formData.userType == "employee"
+                  ? "text-yellow-400 underline"
+                  : "text-white"
+              } text-lg`}
+              onClick={handleChange}
+            >
+              Employee
+            </button>
+
+            <button
+              type="button"
+              name="userType"
+              value="recruiter"
+              className={`${
+                formData.userType == "recruiter"
+                  ? "text-yellow-400 underline"
+                  : "text-white"
+              } text-lg `}
+              onClick={handleChange}
+            >
+              Recruiter
+            </button>
+          </div>
+          <label className="block font-medium mb-2">First Name</label>
+          <input
+            type="text"
+            name="firstname"
+            value={formData.firstname}
+            onChange={handleChange}
+            placeholder="First Name"
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block font-medium mb-2">Last Name</label>
+          <input
+            type="text"
+            name="lastname"
+            value={formData.lastname}
+            onChange={handleChange}
+            placeholder="Last Name"
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block  font-medium mb-2">Username (Email)</label>
+          <input
+            type="email"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            placeholder="Username"
+            className="w-full p-2 border rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block  font-medium mb-2">Password</label>
+          <div className="w-full focus-within:ring-2 focus-within:ring-cyan-500 flex items-center justify-between rounded border">
+            <input
+              type={`${display ? "text" : "password"}`}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              className="w-full p-2 outline-none"
+              required
+            />
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setDisplay(!display);
+              }}
+              className="mr-2"
+            >
+              {" "}
+              {display ? "👁️" : "🙈"}
+            </button>
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block  font-medium mb-2">Confirm Password</label>
+          <div className="w-full focus-within:ring-2 focus-within:ring-cyan-500 flex items-center justify-between rounded border">
+            <input
+              type={`${display ? "text" : "password"}`}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              className="w-full p-2 outline-none"
+              required
+            />
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setDisplay(!display);
+              }}
+              className="mr-2"
+            >
+              {" "}
+              {display ? "👁️" : "🙈"}
+            </button>
+          </div>
+        </div>
+        <div className="mb-4">
+          <label className="block  font-medium mb-2">User Type</label>
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="userType"
+                value="employee"
+                checked={formData.userType === "employee"}
+                onChange={handleChange}
+                className="mr-2"
+              />
+              Employee
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="userType"
+                value="recruiter"
+                checked={formData.userType === "recruiter"}
+                onChange={handleChange}
+                className="mr-2"
+              />
+              Recruiter
+            </label>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-900 transition"
+        >
+          Sign Up
+        </button>
+
+        <div className="mt-10 flex gap-3 items-center self-center">
+          <h1 className="text-md text-white">Already have an Account </h1>{" "}
+          <a
+            href="/login"
+            className="px-4 py-2 text-lg text-white bg-amber-600 rounded-lg"
+          >
+            Login
+          </a>
+        </div>
+      </form>
+
+      <Loader isLoading={isLoading} />
+
+      <Footer />
+    </div>
+  );
+};
+
+export default SignUpPage;
