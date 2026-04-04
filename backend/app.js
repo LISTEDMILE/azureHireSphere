@@ -114,22 +114,21 @@ const app = express();
 /* =========================
    🔥 FIX: HANDLE OPTIONS FIRST
    ========================= */
-app.options("*", (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://gray-bush-0323b2900.7.azurestaticapps.net");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  return res.sendStatus(200);
-});
-
-/* =========================
-   🔥 GLOBAL CORS HEADERS
-   ========================= */
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "https://gray-bush-0323b2900.7.azurestaticapps.net");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  // 🔥 THIS LINE FIXES EVERYTHING
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   next();
 });
+
+/* =====================
 
 /* =========================
    BODY PARSING
