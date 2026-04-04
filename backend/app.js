@@ -205,7 +205,7 @@ mongoose
   .then(() => {
     console.log("✅ DB Connected");
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Server running on PORT ${PORT}`);
+      console.log(`🚀 Server running on PORT ${PORT} new`);
     });
   })
   .catch((err) => {
