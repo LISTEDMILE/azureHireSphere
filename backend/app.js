@@ -105,7 +105,6 @@ const session = require("express-session");
 require("dotenv").config();
 const MongoDBStore = require("connect-mongodb-session")(session);
 const mongoose = require("mongoose");
-const cors = require("cors");
 
 const DB_path = process.env.MONGO_URL;
 const PORT = process.env.PORT;
@@ -113,28 +112,38 @@ const PORT = process.env.PORT;
 const app = express();
 
 /* =========================
-   ✅ CORS (ONLY ONCE, CLEAN)
+   🔥 FIX: HANDLE OPTIONS FIRST
    ========================= */
-app.use(cors({
-  origin: "https://gray-bush-0323b2900.7.azurestaticapps.net",
-  credentials: true,
-}));
-
-app.options("*", cors());
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://gray-bush-0323b2900.7.azurestaticapps.net");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  return res.sendStatus(200);
+});
 
 /* =========================
-   ✅ BODY PARSING
+   🔥 GLOBAL CORS HEADERS
+   ========================= */
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://gray-bush-0323b2900.7.azurestaticapps.net");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
+/* =========================
+   BODY PARSING
    ========================= */
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 /* =========================
-   ✅ STATIC FILES
+   STATIC FILES
    ========================= */
 app.use(express.static(path.join(rootDir, "public")));
 
 /* =========================
-   ✅ SESSION STORE
+   SESSION STORE
    ========================= */
 const store = new MongoDBStore({
   uri: DB_path,
@@ -142,12 +151,12 @@ const store = new MongoDBStore({
 });
 
 /* =========================
-   ✅ TRUST PROXY (IMPORTANT FOR AZURE)
+   TRUST PROXY (AZURE)
    ========================= */
 app.set("trust proxy", 1);
 
 /* =========================
-   ✅ SESSION CONFIG
+   SESSION CONFIG
    ========================= */
 app.use(
   session({
@@ -157,15 +166,15 @@ app.use(
     store: store,
     cookie: {
       httpOnly: true,
-      secure: true,            // ALWAYS true on Azure (HTTPS)
-      sameSite: "none",        // REQUIRED for cross-origin
+      secure: true,
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24,
     },
   })
 );
 
 /* =========================
-   ✅ CUSTOM MIDDLEWARE
+   CUSTOM MIDDLEWARE
    ========================= */
 app.use((req, res, next) => {
   req.isLoggedIn = req.session.isLoggedIn;
@@ -174,14 +183,14 @@ app.use((req, res, next) => {
 });
 
 /* =========================
-   ✅ ROUTES
+   ROUTES
    ========================= */
 app.use("/", authRouter);
 app.use("/host", hostRouter);
 app.use("/store", storeRouter);
 
 /* =========================
-   ✅ FRONTEND SERVE
+   FRONTEND SERVE
    ========================= */
 app.use(express.static(path.join(rootDir, "../frontend")));
 
@@ -190,15 +199,16 @@ app.get("*", (req, res) => {
 });
 
 /* =========================
-   ✅ DB + SERVER START
+   DB + SERVER START
    ========================= */
 mongoose
   .connect(DB_path)
   .then(() => {
+    console.log("✅ DB Connected");
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server Running on PORT ${PORT}`);
+      console.log(`🚀 Server running on PORT ${PORT}`);
     });
   })
   .catch((err) => {
-    console.log("DB connection error:", err);
+    console.log("❌ DB connection error:", err);
   });
