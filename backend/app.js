@@ -21,18 +21,23 @@ const store = new MongoDBStore({
   collection: "sessions",
 });
 
-app.set("trust proxy", 1);
 
-app.use(
-  cors({
+app.use(cors({
     origin: process.env.FRONTEND_URL,
-    credentials: true,
-  })
-);
+  credentials: true,
+}));
+
+app.options("*", cors());
 
 app.use(express.static(path.join(rootDir, "public")));
 app.use(express.urlencoded());
 app.use(express.json());
+
+
+app.set("trust proxy", 1);
+
+
+
 
 app.use(
   session({
